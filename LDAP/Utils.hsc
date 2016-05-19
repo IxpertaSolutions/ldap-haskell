@@ -38,6 +38,7 @@ import LDAP.Data
 import LDAP.TypesLL
 import Control.Exception
 import Data.Dynamic
+import Data.ByteString
 import Foreign.C.Error
 import Foreign.C.String
 import Foreign.ForeignPtr
@@ -164,11 +165,11 @@ withAnyArr0 input2ptract freeact inp action =
 withBervalArr0 :: [String] -> (Ptr (Ptr Berval) -> IO a) -> IO a
 withBervalArr0 = withAnyArr0 newBerval freeHSBerval
 
-bv2str :: Ptr Berval -> IO String
+bv2str :: Ptr Berval -> IO ByteString
 bv2str bptr = 
     do (len::BERLen) <- ( #{peek struct berval, bv_len} ) bptr
        cstr <- ( #{peek struct berval, bv_val} ) bptr
-       peekCStringLen (cstr, fromIntegral len)
+       packCStringLen (cstr, fromIntegral len)
 
 {- | Must be freed later with freeHSBerval! -}
 

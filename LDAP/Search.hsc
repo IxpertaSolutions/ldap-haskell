@@ -26,6 +26,7 @@ module LDAP.Search (SearchAttributes(..),
                    )
 where
 
+import Data.ByteString
 import LDAP.Utils
 import LDAP.Types
 import LDAP.TypesLL
@@ -54,7 +55,7 @@ sa2sl (LDAPAttrList x) = x
 
 data LDAPEntry = LDAPEntry 
     {ledn :: String             -- ^ Distinguished Name of this object
-    ,leattrs :: [(String, [String])] -- ^ Mapping from attribute name to values
+    ,leattrs :: [(String, [ByteString])] -- ^ Mapping from attribute name to values
                            }
     deriving (Eq, Show)
 
@@ -102,7 +103,7 @@ procSR ld cld msgid =
 
 data BerElement
 
-getattrs :: LDAP -> (Ptr CLDAPMessage) -> IO [(String, [String])]
+getattrs :: LDAP -> (Ptr CLDAPMessage) -> IO [(String, [ByteString])]
 getattrs ld lmptr =
     withLDAPPtr ld (\cld -> alloca (f cld))
     where f cld (ptr::Ptr (Ptr BerElement)) =
@@ -117,7 +118,7 @@ getattrs ld lmptr =
                             return $ (str, values):nextitems
 
 getnextitems :: Ptr CLDAP -> Ptr CLDAPMessage -> Ptr BerElement 
-             -> IO [(String, [String])]
+             -> IO [(String, [ByteString])]
 getnextitems cld lmptr bptr =
     do cstr <- ldap_next_attribute cld lmptr bptr
        if cstr == nullPtr
@@ -128,7 +129,7 @@ getnextitems cld lmptr bptr =
                   nextitems <- getnextitems cld lmptr bptr
                   return $ (str, values):nextitems
 
-getvalues :: LDAPPtr -> Ptr CLDAPMessage -> String -> IO [String]
+getvalues :: LDAPPtr -> Ptr CLDAPMessage -> String -> IO [ByteString]
 getvalues cld clm attr =
     withCString attr (\cattr ->
     do berarr <- ldap_get_values_len cld clm cattr
@@ -139,7 +140,7 @@ getvalues cld clm attr =
             else finally (procberarr berarr) (ldap_value_free_len berarr)
     )
 
-procberarr :: Ptr (Ptr Berval) -> IO [String]
+procberarr :: Ptr (Ptr Berval) -> IO [ByteString]
 procberarr pbv =
     do bvl <- peekArray0 nullPtr pbv
        mapM bv2str bvl

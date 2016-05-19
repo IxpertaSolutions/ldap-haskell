@@ -36,7 +36,8 @@ Library
    LDAP.Result
   Build-Depends: base
 
-  build-depends: base >= 4 && <5
+  build-depends: base >= 4 && <5,
+                 bytestring
 
   Extra-Libraries: ldap, lber
 
@@ -56,7 +57,8 @@ Test-Suite test-ldap
   Extra-Libraries: ldap, lber
   build-depends: base >= 4 && < 5,
                  LDAP,
-                 HUnit
+                 HUnit,
+                 bytestring
   if os(openbsd)
     CC-Options: -DLDAP_X_PROXY_AUTHZ_FAILURE=LDAP_PROXY_AUTHZ_FAILURE
   else
